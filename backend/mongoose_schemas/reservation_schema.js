@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const reservationSchema = new Schema({
-    date: String, /* ISO 8061 */
-    duration: Number,
-    seatNumber: Number,
-    fullName: String,
-    phone: String,
-    email: String,
-    numberOfSeats: Number,
+    date: { type: String, required: true }, /* ISO 8061 */
+    duration: { type: Number, required: true },
+    seatNumber: { type: Number, required: true },
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
+    numberOfSeats: { type: Number, required: true },
 });
+
+export default reservationSchema

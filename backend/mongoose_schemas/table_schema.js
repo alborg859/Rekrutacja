@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const tableSchema = new Schema({
-    number: Number,
-    minNumberOfSeats: Number,
-    maxNumberOfSeats: Number,
+    number: { type: Number, required: true },
+    minNumberOfSeats: { type: Number, required: true },
+    maxNumberOfSeats: { type: Number, required: true },
 });
+
+export default tableSchema
