@@ -13,6 +13,7 @@ import {
 } from "../services/mongo_communication.js";
 import reservationDataValidator from "../middleware/reservation_data_validator.js";
 import { generate_6_digit_number } from "../services/helper.js";
+import { verify_cancellation_request } from '../validators/deletion_request_validator.js'
 
 router.post("/", reservationDataValidator, async (req, res) => {
   const { seatNumber, email } = req.body;
@@ -60,12 +61,9 @@ router.put("/:id", async (req, res) => {
   if (!id) return res.status(400).json({ message: "Brak ID rezerwacji" });
 
   try {
-    //TODO:check czy są 2 godziny do rozpoczęcia
+    //TODO: check czy są 2 godziny do rozpoczęcia
     const verification_number = generate_6_digit_number();
-    const mongo_result = await set_reservation_verification_number(
-      id,
-      verification_number
-    );
+    const mongo_result = get_reservation_by_ID(id)
     console.log(mongo_result);
 
     if (!mongo_result)
@@ -73,7 +71,18 @@ router.put("/:id", async (req, res) => {
         .status(400)
         .json({ message: "Rezerwacja o takim numerze nie istnieje" });
 
-    //TODO: SEND EMAIL
+    const is2HoursBefore = verify_cancellation_request(mongo_result.date)
+    if (!is2HoursBefore) return res.status(400).json({ message: 'Rezerwacje można anulować co najwyżej 2 godziny przed jej rozpoczęciem' })
+
+    const update_result = await set_reservation_verification_number(
+      id,
+      verification_number
+    );
+    console.log("UPDATE RESULT")
+    console.log(update_result)
+
+    const email_txt = `Twój kod weryfikacyjny to: ${verification_number}`
+    nodemailer_result.send_email(mongo_result.email, "Prośba o anulowanie rezerwacji", email_txt)
 
     return res.status(200).json({
       message: `Pomyślnie złożono prośbę o anulowanie rezerwacji nr: ${id}, kod weryfikacyjny to: ${verification_number}`
