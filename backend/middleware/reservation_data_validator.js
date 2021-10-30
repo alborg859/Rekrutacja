@@ -2,11 +2,12 @@ import moment from "moment";
 import constants from "../constants.js";
 const { dateFormat } = constants;
 
-export default function reservationDataValidator(req, res, next) {
-  const { date, seatNumber, numberOfSeats } = req.body;
-
+export default function reservation_data_validator(req, res, next) {
+  const { date, seatNumber, numberOfSeats, duration } = req.body;
+  const enddate = moment(date).add(duration, 'minutes').format(dateFormat);
   const now = moment(new Date(Date.now()).toISOString()).format(dateFormat);
   const incoming_date = moment(date).format(dateFormat);
+
   console.log(now, incoming_date);
   const isDateValid = incoming_date > now;
 
@@ -18,6 +19,6 @@ export default function reservationDataValidator(req, res, next) {
 
   if (numberOfSeats < 1)
     return res.status(400).json({ message: "Nieprawidłowa ilość miejsc" });
-
+  req.body.enddate = enddate;
   next();
 }

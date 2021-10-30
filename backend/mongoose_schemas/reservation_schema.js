@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const reservationSchema = new Schema({
   date: { type: String, required: true } /* ISO 8061 */,
+  enddate: String,
   duration: { type: Number, required: true },
   seatNumber: { type: Number, required: true },
   fullName: { type: String, required: true },

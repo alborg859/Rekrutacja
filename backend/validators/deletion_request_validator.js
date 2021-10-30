@@ -1,13 +1,14 @@
 import constants from "../constants.js";
+import moment from 'moment'
 const { dateFormat } = constants;
 
-const verify_cancellation_request = (dateFrom) => {
-
-    const now = moment(new Date(Date.now()).add(2, 'hours').toISOString()).format(dateFormat);
+export const verify_cancellation_request = (dateFrom) => {
+    console.log(dateFrom)
+    const now = moment(new Date(Date.now()).toISOString()).add(2, 'hours').format(dateFormat);
     const incoming_date = moment(dateFrom).format(dateFormat);
-
+    console.log(`${now} | ${incoming_date}`)
     return now < incoming_date
 
 }
 
-export default verify_cancellation_request
+
