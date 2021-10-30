@@ -12,8 +12,7 @@ import {
   get_reservations_by_day,
   set_reservation_verification_number,
   get_reservation_by_ID,
-  delete_reservation,
-  get_overlapping_reservations_in_range
+  delete_reservation
 } from "../services/mongo_communication.js";
 
 import reservation_data_validator from "../middleware/reservation_data_validator.js";
@@ -21,7 +20,9 @@ import { generate_6_digit_number } from "../services/helper.js";
 import { verify_cancellation_request } from '../validators/deletion_request_validator.js'
 import is_table_available from "../middleware/table_availability_checker.js";
 import moment from "moment";
-
+import {
+  validate_object_id
+} from "../validators/id_validator.js"
 
 router.post("/", compose(reservation_data_validator, is_table_available), async (req, res) => {
   const { seatNumber, email } = req.body;
@@ -48,8 +49,10 @@ router.post("/", compose(reservation_data_validator, is_table_available), async 
 router.get("/", async (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(404).json({ message: 'Nie wprowadzono daty' })
+  if (!moment(date, dateFormat, true).isValid()) return res.status(400).json({ message: 'Nieprawidłowy format daty' })
 
-  const dateFrom = moment(date).set({ 'hour': 0, "minute": 0, "second": 0 }).format(dateFormat);
+
+  const dateFrom = moment(date).set({ 'hour': 0, "minute": 0, "second": 0 }, true).format(dateFormat);
   const dateTo = moment(date).set({ 'hour': 0, "minute": 0, "second": 0 }).add(1, 'day').format(dateFormat);
 
   try {
@@ -64,6 +67,7 @@ router.get("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   if (!id) return res.status(400).json({ message: "Brak ID rezerwacji" });
+  if (!validate_object_id(id)) return res.status(400).json({ message: 'Niepoprawne ID' })
 
   try {
     const verification_number = generate_6_digit_number();
@@ -84,7 +88,7 @@ router.put("/:id", async (req, res) => {
     );
 
     const email_txt = `Twój kod weryfikacyjny to: ${verification_number}`
-    send_email(reservations_by_id.email, "Prośba o anulowanie rezerwacji", email_txt)
+    send_email(reservation.email, "Prośba o anulowanie rezerwacji", email_txt)
 
     return res.status(200).json({
       message: `Pomyślnie złożono prośbę o anulowanie rezerwacji nr: ${id}, kod weryfikacyjny to: ${verification_number}`
@@ -102,6 +106,8 @@ router.delete("/:id", async (req, res) => {
 
   if (!id)
     return res.status(400).json({ message: "Brak ID rezerwacji" });
+  if (!validate_object_id(id)) return res.status(400).json({ message: 'Niepoprawne ID' })
+
   if (!verificationCode)
     return res
       .status(400)
@@ -128,6 +134,9 @@ router.delete("/:id", async (req, res) => {
       .json({ message: "Kod weryfikacyjny jest nieprawidłowy" });
 
   const deletion_result = await delete_reservation(id);
+
+  const email_txt = `Pomyślnie anulowano rezerwacje o nr: ${id}`
+  const nodemailer_result = await send_email(reservation.email, "Usunięcie rezerwacji", email_txt)
 
   return res
     .status(200)

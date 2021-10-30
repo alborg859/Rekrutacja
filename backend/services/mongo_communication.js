@@ -40,7 +40,7 @@ export const get_reservations_by_day = async (dateFrom, dateTo) =>
             $lt: dateTo,
             $gte: dateFrom
         }
-    }, '-_id -__v -enddate').lean();
+    }, '-_id -__v -enddate -status -verificationCode').lean();
 
 export const delete_reservation = async id =>
     await reservation_model.deleteOne({ _id: id });
