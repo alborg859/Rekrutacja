@@ -40,13 +40,13 @@ export const get_reservations_by_day = async (dateFrom, dateTo) =>
             $lt: dateTo,
             $gte: dateFrom
         }
-    }).lean();
+    }, '-_id -__v -enddate').lean();
 
 export const delete_reservation = async id =>
     await reservation_model.deleteOne({ _id: id });
 
 export const get_overlapping_reservations_in_range = async (
-    seatNumber,
+    seatNumbers,
     dateFrom,
     dateTo
 ) => {
@@ -63,15 +63,21 @@ export const get_overlapping_reservations_in_range = async (
 
     }
 
-    const mid = {
+    const mid_inner = {
         date: { $gte: dateFrom },
         enddate: { $lte: dateTo }
     }
 
+    const mid_outer = {
+        date: { $lte: dateFrom },
+        enddate: { $gte: dateTo }
+    }
+
     const query = {
         $or: [
-            left_partially, right_partially, mid
-        ]
+            left_partially, right_partially, mid_inner, mid_outer
+        ],
+        seatNumber: { $in: seatNumbers }
     }
     console.log(dateFrom)
     return await reservation_model.find(query).lean();
@@ -109,7 +115,8 @@ export const init_tables = async () => {
 };
 
 export const get_table_info = async (seatNumber) => table_model.findOne({ seatNumber }).lean()
-export const get_tables_by_min_seats = async (minNumberOfSeats) => table_model.find({ minNumberOfSeats }).lean()
+export const get_tables_by_min_seats = async (seats) => table_model.find({ minNumberOfSeats: { $gte: seats } }, '-_id -__v').lean()
+
 
 export default {
     create_reservation_document,

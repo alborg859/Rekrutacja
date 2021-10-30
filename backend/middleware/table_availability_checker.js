@@ -16,7 +16,7 @@ export default async function is_table_available(req, res, next) {
 
     console.log(`${dateFrom} >> ${dateTo}`)
 
-    const overlapping_reservations = await get_overlapping_reservations_in_range(seatNumber, dateFrom, dateTo);
+    const overlapping_reservations = await get_overlapping_reservations_in_range([seatNumber], dateFrom, dateTo);
     console.log(overlapping_reservations)
     if (overlapping_reservations.length > 0) return res.status(400).json({ message: "Ten stolik jest już zarezerwowany w tym okresie czasu" })
 
