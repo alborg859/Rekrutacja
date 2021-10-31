@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     pass: "gwAdJVjTNrtndDN4Gd"
   }
 });
-//passing auth data directly not from .env because it's a test acc
+//passing auth data directly, not from .env, because it's a test acc
 
 export const send_email = async (to, subject, text) => {
   const result = await transporter.sendMail({

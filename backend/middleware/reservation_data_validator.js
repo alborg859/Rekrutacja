@@ -9,11 +9,10 @@ function validate_email(email) {
 
 export default function reservation_data_validator(req, res, next) {
   const { date, seatNumber, numberOfSeats, duration, email } = req.body;
+
   const enddate = moment(date).add(duration, 'minutes').format(dateFormat);
   const now = moment(new Date(Date.now()).toISOString()).format(dateFormat);
   const incoming_date = moment(date).format(dateFormat);
-
-  console.log(now, incoming_date);
   const isDateValid = incoming_date > now;
 
   if (!date || !seatNumber || !numberOfSeats || !duration || !email) return res.status(400).json({ message: "Niewystarczające dane" })
@@ -32,5 +31,6 @@ export default function reservation_data_validator(req, res, next) {
   if (isNaN(numberOfSeats) || numberOfSeats < 1)
     return res.status(400).json({ message: "Nieprawidłowa ilość miejsc" });
   req.body.enddate = enddate;
+
   next();
 }

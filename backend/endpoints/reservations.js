@@ -39,7 +39,7 @@ router.post("/", compose(reservation_data_validator, is_table_available), async 
     );
 
     return res
-      .status(200)
+      .status(201)
       .json({ message: `Pomyślnie złożono rezerwacje nr: ${reservation_id}` });
   } catch (e) {
     return res.status(500).json({ error: e });
@@ -59,7 +59,6 @@ router.get("/", async (req, res) => {
     const reservations = await get_reservations_by_day(dateFrom, dateTo);
     return res.status(200).json({ bookings: reservations });
   } catch (e) {
-    console.log(e)
     return res.status(500).json({ error: e });
   }
 });
@@ -72,13 +71,11 @@ router.put("/:id", async (req, res) => {
   try {
     const verification_number = generate_6_digit_number();
     const reservation = await get_reservation_by_ID(id)
-    console.log(reservation);
 
     if (!reservation)
       return res
         .status(400)
         .json({ message: "Rezerwacja o takim numerze nie istnieje" });
-    console.log(reservation)
     const is2HoursBefore = verify_cancellation_request(reservation.date)
     if (!is2HoursBefore) return res.status(400).json({ message: 'Rezerwacje można anulować co najwyżej 2 godziny przed jej rozpoczęciem' })
 
@@ -94,7 +91,6 @@ router.put("/:id", async (req, res) => {
       message: `Pomyślnie złożono prośbę o anulowanie rezerwacji nr: ${id}, kod weryfikacyjny to: ${verification_number}`
     });
   } catch (e) {
-    console.log(e)
     return res.status(500).json({ error: e });
   }
 });

@@ -15,12 +15,10 @@ router.get('/', table_query_validator, async (req, res) => {
         table_numbers.push(table.number)
     });
 
-
     const dateFrom = moment(start_date).format(dateFormat)
     const dateTo = moment(start_date).add(duration, "minutes").format(dateFormat)
 
     const overlapping_reservations = await get_overlapping_reservations_in_range(table_numbers, dateFrom, dateTo)
-    console.log(overlapping_reservations)
 
     let unavailable_tables = []
     overlapping_reservations.forEach(reservation => {

@@ -9,7 +9,7 @@ const table_model = mongoose.model("Table", table_schema);
 
 mongoose
     .connect("mongodb://localhost:27017/SOLVRO_REZERWACJE")
-    .then(() => console.log("Mongoose ready to use!"));
+    .then(() => console.log("SOLVRO RESTAURANT DB - operational"));
 
 export const create_reservation_document = async data => {
     const new_reservation = new reservation_model(data);
@@ -79,7 +79,6 @@ export const get_overlapping_reservations_in_range = async (
         ],
         seatNumber: { $in: seatNumbers }
     }
-    console.log(dateFrom)
     return await reservation_model.find(query).lean();
 }
 
@@ -88,11 +87,10 @@ export const init_tables = async () => {
     const current_tables = await table_model
         .find({}, "number minNumberOfSeats maxNumberOfSeats -_id")
         .lean();
-    console.log(current_tables);
+
     let current_seatNumbers = [];
     current_tables.forEach(e => current_seatNumbers.push(e.number));
 
-    console.log(current_seatNumbers);
 
     const seats = JSON.parse(
         await readFile(new URL("../seats.json", import.meta.url))
@@ -104,9 +102,6 @@ export const init_tables = async () => {
         if (!isPresent) pending_tables.push(e);
     });
 
-    console.log("PendingTables");
-    console.log(pending_tables);
-
     try {
         await table_model.insertMany(pending_tables);
     } catch (e) {
@@ -115,7 +110,7 @@ export const init_tables = async () => {
 };
 
 export const get_table_info = async (seatNumber) => table_model.findOne({ seatNumber }).lean()
-export const get_tables_by_min_seats = async (seats) => table_model.find({ minNumberOfSeats: { $gte: seats } }, '-_id -__v').lean()
+export const get_tables_by_min_seats = async (seats) => table_model.find({ minNumberOfSeats: { $lte: seats }, maxNumberOfSeats: { $gte: seats } }, '-_id -__v').lean()
 
 
 export default {
